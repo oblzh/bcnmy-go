@@ -93,7 +93,7 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 			return nil, fmt.Errorf("MetaAPI failed")
 		}
 		if resp.TxHash == common.HexToHash("0x0") {
-			err := fmt.Errorf("Message: %s, Code: %s, Limit: %v", resp.Message, resp.Code, resp.Limit)
+			err := fmt.Errorf("Message: %s, Code: %v, Limit: %v", resp.Message, resp.Code, resp.Limit)
 			return resp, err
 		}
 		return resp, nil
@@ -188,6 +188,12 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 		return resp, nil, nil, err
 	}
 
+	receipt, err := WaitMined(context.Background(), b.ethClient, resp.TxHash)
+	if err != nil {
+		b.logger.Errorf("WaitMined failed: %v", err)
+		return resp, nil, nil, err
+	}
+
 	var tx *types.Transaction
 	retries := 5
 	for {
@@ -196,7 +202,7 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 		tx, _, err = b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 		if err != nil {
 			b.logger.Errorf("Checking TransactionByHash failed: %v, retries: %v", err, retries)
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * b.sleepTimeSec)
 		} else {
 			break
 		}
@@ -204,7 +210,6 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 			return resp, nil, nil, err
 		}
 	}
-	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
 	return resp, tx, receipt, err
 }
 
@@ -265,6 +270,12 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 		return resp, nil, nil, err
 	}
 
+	receipt, err := WaitMined(context.Background(), b.ethClient, resp.TxHash)
+	if err != nil {
+		b.logger.Errorf("WaitMined failed: %v", err)
+		return resp, nil, nil, err
+	}
+
 	var tx *types.Transaction
 	retries := 5
 	for {
@@ -273,7 +284,7 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 		tx, _, err = b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 		if err != nil {
 			b.logger.Errorf("Checking TransactionByHash failed: %v, retries: %v", err, retries)
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * b.sleepTimeSec)
 		} else {
 			break
 		}
@@ -281,8 +292,6 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 			return resp, nil, nil, err
 		}
 	}
-
-	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
 	return resp, tx, receipt, err
 }
 

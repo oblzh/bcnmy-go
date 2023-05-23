@@ -21,8 +21,9 @@ type Bcnmy struct {
 	ctx    context.Context
 	logger *logrus.Entry
 
-	ethClient  *ethclient.Client
-	httpClient *http.Client
+	ethClient    *ethclient.Client
+	sleepTimeSec time.Duration
+	httpClient   *http.Client
 
 	// DAPP abi and address
 	abi     abi.ABI
@@ -60,8 +61,9 @@ func NewBcnmy(httpRpc string, apiKey string, timeout time.Duration) (*Bcnmy, err
 			ID              string
 			ContractAddress string
 		}),
-		batchId:    big.NewInt(0),
-		httpClient: &http.Client{Timeout: timeout},
+		batchId:      big.NewInt(0),
+		httpClient:   &http.Client{Timeout: timeout},
+		sleepTimeSec: time.Duration(5),
 	}
 	bcnmy.ethClient, err = ethclient.DialContext(bcnmy.ctx, httpRpc)
 	if err != nil {
@@ -132,6 +134,11 @@ func (b *Bcnmy) WithAuthToken(authToken string) *Bcnmy {
 
 func (b *Bcnmy) WithFieldTimeout(timeout time.Duration) *Bcnmy {
 	b.httpClient = &http.Client{Timeout: timeout}
+	return b
+}
+
+func (b *Bcnmy) WithSleepTimeSec(sleepTimeSec int64) *Bcnmy {
+	b.sleepTimeSec = time.Duration(sleepTimeSec)
 	return b
 }
 
