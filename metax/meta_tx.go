@@ -196,6 +196,7 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 		tx, _, err = b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 		if err != nil {
 			b.logger.Errorf("Checking TransactionByHash failed: %v, retries: %v", err, retries)
+			time.Sleep(time.Second * 5)
 		} else {
 			break
 		}
@@ -272,6 +273,7 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 		tx, _, err = b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 		if err != nil {
 			b.logger.Errorf("Checking TransactionByHash failed: %v, retries: %v", err, retries)
+			time.Sleep(time.Second * 5)
 		} else {
 			break
 		}
