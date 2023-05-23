@@ -36,7 +36,7 @@ type LimitInfo struct {
 }
 
 func (b *Bcnmy) CheckLimits(from string, method string) (*CheckLimitResponse, error) {
-	apiId, ok := b.apiID[method]
+	apiId, ok := b.apiID[fmt.Sprintf("%s-%s", b.address.Hex(), method)]
 	if !ok {
 		err := fmt.Errorf("ApiId not found for %s", method)
 		b.logger.Error(err.Error())

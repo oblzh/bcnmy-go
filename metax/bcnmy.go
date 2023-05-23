@@ -104,7 +104,7 @@ func NewBcnmy(httpRpc string, apiKey string, timeout time.Duration) (*Bcnmy, err
 	for _, info := range resp.ListAPI {
 		// filter non contractAddress
 		if common.IsHexAddress(info.ContractAddress) {
-			bcnmy.apiID[info.Method] = struct {
+			bcnmy.apiID[fmt.Sprintf("%s-%s", common.HexToAddress(info.ContractAddress).Hex(), info.Method)] = struct {
 				ID              string
 				ContractAddress string
 			}{
