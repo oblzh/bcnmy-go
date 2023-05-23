@@ -104,7 +104,7 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 }
 
 func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}) (*MetaTxResponse, *types.Transaction, *types.Receipt, error) {
-	apiId, ok := b.apiID[method]
+	apiId, ok := b.apiID[fmt.Sprintf("%s-%s", b.address.Hex(), method)]
 	if !ok {
 		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
 		b.logger.Error(err.Error())
@@ -242,7 +242,7 @@ func (b *Bcnmy) BuildTransactParams(metaTxMessage *MetaTxMessage, typedDataHash 
 // / Backend using this method, handle frontend passing signature, MetaTxMessage and
 // / ForwardRequestType data Hash value
 func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*MetaTxResponse, *types.Transaction, *types.Receipt, error) {
-	apiId, ok := b.apiID[method]
+	apiId, ok := b.apiID[fmt.Sprintf("%s-%s", b.address.Hex(), method)]
 	if !ok {
 		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
 		b.logger.Error(err.Error())
