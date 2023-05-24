@@ -2,6 +2,7 @@ package metax
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"time"
@@ -36,5 +37,14 @@ func WaitMined(ctx context.Context, b bind.DeployBackend, txHash common.Hash) (*
 			return nil, ctx.Err()
 		case <-queryTicker.C:
 		}
+	}
+}
+
+func ConvertToJsonStr(obj interface{}) string {
+	jsonStr, err := json.MarshalIndent(obj, "", " ")
+	if err != nil {
+		return ""
+	} else {
+		return string(jsonStr)
 	}
 }
