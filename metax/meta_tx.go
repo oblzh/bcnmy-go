@@ -182,6 +182,10 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 		},
 		SignatureType: SignatureEIP712Type,
 	}
+
+	b.logger.Debugf("MetaTxRequest: %s", ConvertToJsonStr(req))
+	b.logger.Debugf("MetaTxMessage: %s", ConvertToJsonStr(metaTxMessage))
+
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
 		b.logger.Errorf("Transaction failed: %v", err)
@@ -269,6 +273,9 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 		b.logger.Errorf("Transaction failed: %v", err)
 		return resp, nil, nil, err
 	}
+
+	b.logger.Debugf("MetaTxRequest: %s", ConvertToJsonStr(req))
+	b.logger.Debugf("MetaTxMessage: %s", ConvertToJsonStr(metaTxMessage))
 
 	receipt, err := WaitMined(context.Background(), b.ethClient, resp.TxHash)
 	if err != nil {
