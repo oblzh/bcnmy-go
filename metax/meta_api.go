@@ -2,6 +2,7 @@ package metax
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -37,10 +38,10 @@ type MetaTxLimit struct {
 }
 
 func (b *Bcnmy) GetMetaAPI(ctx context.Context) (*MetaAPIResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
+	defer close(bodyCh)
 	defer close(errorCh)
-	defer close(responseCh)
 
 	req, err := http.NewRequest(http.MethodGet, MetaAPIURL, nil)
 	if err != nil {
@@ -50,19 +51,19 @@ func (b *Bcnmy) GetMetaAPI(ctx context.Context) (*MetaAPIResponse, error) {
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("x-api-key", b.apiKey)
 	var resp MetaAPIResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*MetaAPIResponse)
-		if !ok {
-			return nil, fmt.Errorf("MetaAPI failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("AddDestinationAddresses unmarshal failed, %v", err)
 		}
 		if resp.Flag != 143 {
 			err := fmt.Errorf("%v", resp)
 			b.logger.WithError(err).Error(resp.Log)
 			return nil, err
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err

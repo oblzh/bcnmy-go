@@ -1,13 +1,12 @@
 package metax
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-func (b *Bcnmy) asyncHttpx(req *http.Request, resp interface{}, errorCh chan error, responseCh chan interface{}) {
+func (b *Bcnmy) asyncHttpx(req *http.Request, errorCh chan error, bodyCh chan []byte) {
 	go func() {
 		res, err := b.httpClient.Do(req)
 		if err != nil {
@@ -22,16 +21,11 @@ func (b *Bcnmy) asyncHttpx(req *http.Request, resp interface{}, errorCh chan err
 			errorCh <- err
 			return
 		}
-		if err := json.Unmarshal(replyData, resp); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- resp
+		bodyCh <- replyData
 	}()
 }
 
-func (b *Bcnmy) backendAsyncHttpx(req *http.Request, resp interface{}, errorCh chan error, responseCh chan interface{}) {
+func (b *Bcnmy) backendAsyncHttpx(req *http.Request, errorCh chan error, bodyCh chan []byte) {
 	go func() {
 		res, err := b.backendHttpClient.Do(req)
 		if err != nil {
@@ -50,11 +44,6 @@ func (b *Bcnmy) backendAsyncHttpx(req *http.Request, resp interface{}, errorCh c
 			errorCh <- err
 			return
 		}
-		if err := json.Unmarshal(replyData, resp); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- resp
+		bodyCh <- replyData
 	}()
 }

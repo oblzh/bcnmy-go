@@ -23,6 +23,14 @@ const (
 	// backend
 	BackendLoginURL = "https://dashboard-backend.prod.biconomy.io/api/v1/user/login"
 	BackendDappURL  = "https://dashboard-backend.prod.biconomy.io/api/v1/dapp"
+
+	// v1 sdk
+	MetaTxNativeURLV1        = "https://gasless-meta.prod.biconomy.io/api/v1/native"
+	MetaTransactionStatusURL = "https://gasless-meta.prod.biconomy.io/api/v1/sdk/transaction-status"
+)
+
+const (
+	PACKAGE_VERSION = "3.0.4"
 )
 
 const (

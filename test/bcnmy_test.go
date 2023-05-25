@@ -1,21 +1,12 @@
 package test
 
 import (
-	"os"
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 
 	token "github.com/oblzh/bcnmy-go/abi/token"
 	metax "github.com/oblzh/bcnmy-go/metax"
 )
-
-func buildBcnmy() *metax.Bcnmy {
-	b, _ := metax.NewBcnmy(os.Getenv("httpRpc"), os.Getenv("apiKey"), 10*time.Second)
-	b = b.WithAuthToken(os.Getenv("authToken"))
-	return b
-}
 
 // Finished
 func TestDeleteContract(t *testing.T) {

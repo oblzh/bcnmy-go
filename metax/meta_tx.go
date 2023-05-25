@@ -67,10 +67,10 @@ func (m *MetaTxMessage) TypedData() apitypes.TypedDataMessage {
 }
 
 func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
+	defer close(bodyCh)
 	defer close(errorCh)
-	defer close(responseCh)
 
 	body, err := json.Marshal(data)
 	if err != nil {
@@ -85,18 +85,18 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("x-api-key", b.apiKey)
 	var resp MetaTxResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*MetaTxResponse)
-		if !ok {
-			return nil, fmt.Errorf("MetaAPI failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("SendMetaNativeTx unmarshal failed, %v", err)
 		}
 		if resp.TxHash == common.HexToHash("0x0") {
 			err := fmt.Errorf("Message: %s, Code: %v, Limit: %v", resp.Message, resp.Code, resp.Limit)
-			return resp, err
+			return &resp, err
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err

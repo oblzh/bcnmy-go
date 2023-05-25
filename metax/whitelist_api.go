@@ -43,8 +43,10 @@ type PatchProxyContractsRequest struct {
 }
 
 func (b *Bcnmy) AddDestinationAddresses(data *AddDestinationRequest) (*AddDestinationResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
+	defer close(bodyCh)
+	defer close(errorCh)
 	body, err := json.Marshal(data)
 	if err != nil {
 		b.logger.WithError(err).Error("json marshal `AddDestinationRequest` data failed")
@@ -58,14 +60,14 @@ func (b *Bcnmy) AddDestinationAddresses(data *AddDestinationRequest) (*AddDestin
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
 	var resp AddDestinationResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*AddDestinationResponse)
-		if !ok {
-			return nil, fmt.Errorf("AddDestination failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("AddDestinationAddresses unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err
@@ -73,8 +75,11 @@ func (b *Bcnmy) AddDestinationAddresses(data *AddDestinationRequest) (*AddDestin
 }
 
 func (b *Bcnmy) AddProxyContracts(data *AddProxyContractsRequest) (*ProxyContractsResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
+	defer close(bodyCh)
+	defer close(errorCh)
+
 	body, err := json.Marshal(data)
 	if err != nil {
 		b.logger.WithError(err).Error("json marshal `AddProxyContractsRequest` data failed")
@@ -88,14 +93,14 @@ func (b *Bcnmy) AddProxyContracts(data *AddProxyContractsRequest) (*ProxyContrac
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
 	var resp ProxyContractsResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*ProxyContractsResponse)
-		if !ok {
-			return nil, fmt.Errorf("AddProxyContracts failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("AddProxyContracts unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err
@@ -103,8 +108,11 @@ func (b *Bcnmy) AddProxyContracts(data *AddProxyContractsRequest) (*ProxyContrac
 }
 
 func (b *Bcnmy) PatchProxyContracts(data *PatchProxyContractsRequest) (*ProxyContractsResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
+	defer close(bodyCh)
+	defer close(errorCh)
+
 	body, err := json.Marshal(data)
 	if err != nil {
 		b.logger.WithError(err).Error("json marshal `PatchProxyContractsRequest` data failed")
@@ -118,14 +126,14 @@ func (b *Bcnmy) PatchProxyContracts(data *PatchProxyContractsRequest) (*ProxyCon
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
 	var resp ProxyContractsResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*ProxyContractsResponse)
-		if !ok {
-			return nil, fmt.Errorf("PatchProxyContracts failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("PatchProxyContracts unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err
@@ -133,8 +141,10 @@ func (b *Bcnmy) PatchProxyContracts(data *PatchProxyContractsRequest) (*ProxyCon
 }
 
 func (b *Bcnmy) GetProxyContracts() (*GetProxyContractsResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
+	defer close(bodyCh)
+	defer close(errorCh)
 	req, err := http.NewRequest(http.MethodGet, ProxyContractsURL, nil)
 	if err != nil {
 		b.logger.WithError(err).Error("GetProxyContracts NewRequest failed")
@@ -142,14 +152,14 @@ func (b *Bcnmy) GetProxyContracts() (*GetProxyContractsResponse, error) {
 	}
 	req.Header.Set("Authorization", b.GetAuthorization())
 	var resp GetProxyContractsResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*GetProxyContractsResponse)
-		if !ok {
-			return nil, fmt.Errorf("GetProxyContracts failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("GetProxyContracts unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err

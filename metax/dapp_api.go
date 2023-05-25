@@ -1,6 +1,7 @@
 package metax
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -43,10 +44,10 @@ func (b *Bcnmy) CheckLimits(from string, method string) (*CheckLimitResponse, er
 		return nil, err
 	}
 
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
+	defer close(bodyCh)
 	defer close(errorCh)
-	defer close(responseCh)
 
 	values := url.Values{
 		"userAddress": {from},
@@ -64,14 +65,14 @@ func (b *Bcnmy) CheckLimits(from string, method string) (*CheckLimitResponse, er
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("x-api-key", b.apiKey)
 	var resp CheckLimitResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*CheckLimitResponse)
-		if !ok {
-			return nil, fmt.Errorf("CheckLimits failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("AddDestinationAddresses unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err

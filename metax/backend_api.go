@@ -139,10 +139,10 @@ func (b *Bcnmy) BackendLogin() (*LoginResponse, error) {
 }
 
 func (b *Bcnmy) BackendDappList() (*DappResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
 	defer close(errorCh)
-	defer close(responseCh)
+	defer close(bodyCh)
 
 	req, err := http.NewRequest(http.MethodGet, BackendDappURL, nil)
 	if err != nil {
@@ -151,14 +151,14 @@ func (b *Bcnmy) BackendDappList() (*DappResponse, error) {
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	var resp DappResponse
-	b.backendAsyncHttpx(req, &resp, errorCh, responseCh)
+	b.backendAsyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*DappResponse)
-		if !ok {
-			return nil, fmt.Errorf("BackendDappList failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("AddDestinationAddresses unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err

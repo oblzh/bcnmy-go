@@ -5,25 +5,15 @@ import (
 	"math/big"
 	//"encoding/hex"
 
-	"os"
-	"testing"
-	"time"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/assert"
+	"testing"
 
 	demo "github.com/oblzh/bcnmy-go/abi/demo"
 	metax "github.com/oblzh/bcnmy-go/metax"
 )
-
-func buildBcnmy() *metax.Bcnmy {
-	b, _ := metax.NewBcnmy(os.Getenv("httpRpc"), os.Getenv("apiKey"), time.Second*100)
-	b = b.WithAuthToken(os.Getenv("authToken"))
-	b = b.WithFieldTimeout(time.Second * 60)
-	return b
-}
 
 // Finished https://mumbai.polygonscan.com/tx/0x39b3ed93123d9c45583cd6c68c72943fb13c8f72d489deb00b96a02a8fd21745
 // Latest Update finish bsctest https://testnet.bscscan.com/tx/0x109c20a18e95afd8d8a6502f54d8788fddc1d1ae0013e9aa4b97718a5b0c049b
@@ -73,7 +63,7 @@ func buildBcnmy() *metax.Bcnmy {
 // Finished
 func TestTransferDemo(t *testing.T) {
 	b := buildBcnmy()
-	b.WithDapp(demo.TransferDemoABI, common.HexToAddress("0x56b71565f6e7f9de4c3217a6e5d4133bc7fc67eb"))
+	b.WithDapp(demo.TransferDemoMetaData.ABI, common.HexToAddress("0x56b71565f6e7f9de4c3217a6e5d4133bc7fc67eb"))
 
 	metaTxMessage := &metax.MetaTxMessage{
 		From:          common.HexToAddress("0xD1cc56810a3947d1D8b05448afB9889c6cFCF0F1"),
@@ -82,9 +72,9 @@ func TestTransferDemo(t *testing.T) {
 		TxGas:         150000,
 		TokenGasPrice: "0",
 		BatchId:       big.NewInt(0),
-		BatchNonce:    big.NewInt(19),
-		Deadline:      big.NewInt(1684815127),
-		Data:          "0x71234eb00000000000000000000000006a22dda833c14ca6189f32e0dbcdf41ac2a3c951000000000000000000000000c015fb756fd4d49c6280eca2d47df30e8f6d083100000000000000000000000000000000000000000000000000000000000186a000000000000000000000000000000000000000000000000000000000000186a0000000000000000000000000000000000000000000000000000000000000000f00000000000000000000000000000000000000000000000000000000646c3d170000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c3aee4900e4d2df6cd60bab10699f3a4336ea527db9f20c3a13905167cce340d3018f6c8bb754c437bfb7e9ad291ff468e34e94e0169d8d9509eb0ef3fca1415c",
+		BatchNonce:    big.NewInt(20),
+		Deadline:      big.NewInt(1685068578),
+		Data:          "0x71234eb00000000000000000000000006a22dda833c14ca6189f32e0dbcdf41ac2a3c951000000000000000000000000c015fb756fd4d49c6280eca2d47df30e8f6d083100000000000000000000000000000000000000000000000000000000000186a000000000000000000000000000000000000000000000000000000000000186a000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000064701b220000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c506470fc7c42adc37ff9919c40c35bfd0588a9b3640954f1f07763bd7aae9937086e0197a7c83bbf6f07627434cb53cd59a9a788cc4c4a7e0df84c2f76a8d766",
 	}
 
 	typedData := apitypes.TypedData{
@@ -99,7 +89,7 @@ func TestTransferDemo(t *testing.T) {
 		Message: metaTxMessage.TypedData(),
 	}
 	typedDataHash, _ := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
-	signature := hexutil.MustDecode("0xf38bbb6b1af600828c95711b6e5ca4eb8119739ceae84e3ad032aa3fc886c1777e9dbf4b91a7fa508aa5041f044820afa92fa0db31b9be6ac81f5b3d6090f24d1c")
+	signature := hexutil.MustDecode("0x6b2a5b57f9fb9b9b1e13444d2af5205378246cb7327d94c3df1c651b61d6eb622ae69d3158d37b0cb051fd4a742b6bcb9e1b351fc44bba7f4a862e93159cb91c1c")
 	fmt.Println(signature)
 	_, txn, _, err := b.EnhanceTransact(
 		common.HexToAddress("0xD1cc56810a3947d1D8b05448afB9889c6cFCF0F1").Hex(),

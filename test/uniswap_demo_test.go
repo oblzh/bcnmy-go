@@ -4,7 +4,6 @@ import (
 	"math/big"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
@@ -12,13 +11,6 @@ import (
 	demo "github.com/oblzh/bcnmy-go/abi/demo"
 	metax "github.com/oblzh/bcnmy-go/metax"
 )
-
-func buildBcnmy() *metax.Bcnmy {
-	b, _ := metax.NewBcnmy(os.Getenv("httpRpc"), os.Getenv("apiKey"), time.Second*10)
-	b = b.WithAuthToken(os.Getenv("authToken"))
-	b = b.WithFieldTimeout(time.Second * 60)
-	return b
-}
 
 // Finished
 func TestUniswapDemo(t *testing.T) {
@@ -51,7 +43,7 @@ func TestUniswapDemo(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, packed)
 
-	txn, _, err := b.RawTransact(signer, "exactInputSingle", params...)
+	txn, _, _, err := b.RawTransact(signer, "exactInputSingle", params...)
 	assert.Nil(t, err)
 	assert.NotNil(t, txn)
 }

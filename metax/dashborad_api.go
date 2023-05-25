@@ -70,8 +70,10 @@ type DeleteMethodRequest struct {
 }
 
 func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error) {
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
-	responseCh := make(chan interface{})
+	defer close(bodyCh)
+	defer close(errorCh)
 	body := url.Values{
 		"dappName":             {data.DappName},
 		"networkId":            {data.NetworkId},
@@ -86,14 +88,14 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 	req.Header.Set("authToken", b.authToken)
 
 	var resp CreateDappResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*CreateDappResponse)
-		if !ok {
-			return nil, fmt.Errorf("CreateDappResponse failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("CreateDapp unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err
@@ -101,10 +103,10 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 }
 
 func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) {
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
-	responseCh := make(chan interface{})
+	defer close(bodyCh)
 	defer close(errorCh)
-	defer close(responseCh)
 
 	body := url.Values{
 		"contractName":        {data.ContractName},
@@ -123,14 +125,14 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp GeneralResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*GeneralResponse)
-		if !ok {
-			return nil, fmt.Errorf("AddContract failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("AddContract unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err
@@ -138,10 +140,10 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 }
 
 func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
-	responseCh := make(chan interface{})
+	defer close(bodyCh)
 	defer close(errorCh)
-	defer close(responseCh)
 
 	body := url.Values{
 		"apiType":         {data.ApiType},
@@ -159,14 +161,14 @@ func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp AddMethodResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*AddMethodResponse)
-		if !ok {
-			return nil, fmt.Errorf("AddMethod failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("AddMethod unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err

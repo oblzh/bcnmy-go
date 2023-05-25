@@ -1,6 +1,7 @@
 package metax
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -44,21 +45,11 @@ type UserLimitResponse struct {
 	} `json:"userLimitData"`
 }
 
-//type GasTankBalanceResponse struct {
-//GeneralResponse
-//DappGasTankData struct {
-//EffectiveBalanceInWei          *big.Int `json:"effectiveBalanceInWei"`
-//EffectiveBalanceInStandardForm string   `json:"effectiveBalanceInStandardForm"`
-//IsBelowThreshold               bool     `json:"isBelowThreshold"`
-//IsInGracePeriod                bool     `json:"isInGracePeriod"`
-//} `json:"dappGasTankData"`
-//}
-
 func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
 	defer close(errorCh)
-	defer close(responseCh)
+	defer close(bodyCh)
 
 	body := url.Values{
 		"startDate": {data.StartDate},
@@ -73,14 +64,14 @@ func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataR
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp UniqueUserDataResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*UniqueUserDataResponse)
-		if !ok {
-			return nil, fmt.Errorf("UniqueUserData failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("GetUniqueUserData unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err
@@ -88,10 +79,10 @@ func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataR
 }
 
 func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error) {
-	responseCh := make(chan interface{}, 1)
+	bodyCh := make(chan []byte)
 	errorCh := make(chan error)
 	defer close(errorCh)
-	defer close(responseCh)
+	defer close(bodyCh)
 
 	body := url.Values{
 		"signerAddress": {data.SignerAddress},
@@ -106,48 +97,16 @@ func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error)
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp UserLimitResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, errorCh, bodyCh)
 	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*UserLimitResponse)
-		if !ok {
-			return nil, fmt.Errorf("UserLimit failed")
+	case ret := <-bodyCh:
+		err = json.Unmarshal(ret, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("GetUserLimit unmarshal failed, %v", err)
 		}
-		return resp, nil
+		return &resp, nil
 	case err := <-errorCh:
 		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
-
-/// always returns 401 UnAuthorized bad code, remove but mark it.
-//func (b *Bcnmy) GetGasTankBalance() (*GasTankBalanceResponse, error) {
-//responseCh := make(chan interface{}, 1)
-//errorCh := make(chan error)
-//defer close(errorCh)
-//defer close(responseCh)
-
-//req, err := http.NewRequest(http.MethodGet, GasTankBalanceURL, nil)
-//if err != nil {
-//b.logger.WithError(err).Error("GetGasTankBalance NewRequest failed")
-//return nil, err
-//}
-//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-//fmt.Println(b.authToken)
-//fmt.Println(b.apiKey)
-//req.Header.Set("authToken", b.authToken)
-//req.Header.Set("apiKey", b.apiKey)
-//var resp GasTankBalanceResponse
-//b.asyncHttpx(req, &resp, errorCh, responseCh)
-//select {
-//case ret := <-responseCh:
-//resp, ok := ret.(*GasTankBalanceResponse)
-//if !ok {
-//return nil, fmt.Errorf("GasTankBalance failed")
-//}
-//return resp, nil
-//case err := <-errorCh:
-//b.logger.Error(err.Error())
-//return nil, err
-//}
-//}
