@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"log"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
@@ -47,4 +50,20 @@ func ConvertToJsonStr(obj interface{}) string {
 	} else {
 		return string(jsonStr)
 	}
+}
+
+func GetDomainSeparator(forwarderAddress common.Address, chainId *big.Int) (common.Hash, error) {
+	typedData := apitypes.TypedData{
+		Types:       SignedTypes,
+		PrimaryType: EIP712DomainType,
+		Domain: apitypes.TypedDataDomain{
+			Name:              ForwardRequestName,
+			Version:           Version,
+			VerifyingContract: forwarderAddress.Hex(),
+			Salt:              hexutil.Encode(common.LeftPadBytes(chainId.Bytes(), 32)),
+		},
+		Message: make(map[string]interface{}),
+	}
+	domainSeparator, err := typedData.HashStruct(EIP712DomainType, typedData.Domain.Map())
+	return common.HexToHash(hexutil.Encode(domainSeparator)), err
 }
